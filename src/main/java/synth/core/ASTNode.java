@@ -25,6 +25,10 @@ public class ASTNode {
         return children.get(index);
     }
 
+    public boolean isComplete() {
+        return this.getSymbol().isTerminal() && this.getChildren().stream().allMatch(ASTNode::isComplete);
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
