@@ -34,6 +34,7 @@ public class TopDownEnumSynthesizer implements ISynthesizer {
                 Program program = new Program(node);
 
                 boolean isSatisfied = true;
+                // Check if the program satisfies all examples
                 for (Example example : examples) {
                     int value = Interpreter.evaluate(program, example.getInput());
                     if (value != example.getOutput()) {
@@ -81,7 +82,8 @@ public class TopDownEnumSynthesizer implements ISynthesizer {
             }
         }
         
-        // If the root does not have any child or any incomplete child and its symbol is non-terminal, expand it based on production rules
+        // If the root does not have any child or any incomplete child and its symbol is non-terminal,
+        // expand it based on production rules
         if (root.getSymbol().isNonTerminal()) {
             for (Production production : cfg.getProductions((NonTerminal) root.getSymbol())) {
                 // Create a new node with the operator and the argument symbols from the production
