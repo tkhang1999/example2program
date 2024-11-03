@@ -3,6 +3,8 @@ package synth;
 import synth.cfg.CFG;
 import synth.cfg.NonTerminal;
 import synth.cfg.Terminal;
+import synth.core.ConstraintBasedSynthesizer;
+import synth.core.DivideAndConquerSynthesizer;
 import synth.core.Example;
 import synth.core.ISynthesizer;
 import synth.cfg.Production;
@@ -18,17 +20,25 @@ import java.util.List;
 import java.util.Map;
 
 public class Main {
+    private static final String CONSTRAINT_BASED = "constraint-based";
+    private static final String DIVIDE_AND_CONQUER = "divide-conquer";
+
     public static void main(String[] args) {
-        // String examplesFilePath = "examples.txt";
         String examplesFilePath = args[0];
         List<String> lines = FileUtils.readLinesFromFile(examplesFilePath);
         // parse all examples
         List<Example> examples = Parser.parseAllExamples(lines);
         // read the CFG
         CFG cfg = buildCFG();
-        ISynthesizer synthesizer = new TopDownEnumSynthesizer();
+        // read the synthesizer
+        ISynthesizer synthesizer = buildSynthesizer(args.length > 1 ? args[1] : null);
+
+        long startTime = System.currentTimeMillis();
         Program program = synthesizer.synthesize(cfg, examples);
+        long endTime = System.currentTimeMillis();
+
         System.out.println(program);
+        System.out.println("Time taken: " + (endTime - startTime) + "ms");
     }
 
     /**
@@ -67,5 +77,21 @@ public class Main {
             symbolToProductions.put(retSymbol, prods);
         }
         return new CFG(startSymbol, symbolToProductions);
+    }
+
+    /**
+     * Build a synthesizer based on the given type
+     * 
+     * @param synthesizerType
+     * @return the synthesizer
+     */
+    private static ISynthesizer buildSynthesizer(String synthesizerType) {
+        if (CONSTRAINT_BASED.equals(synthesizerType)) {
+            return new ConstraintBasedSynthesizer();
+        } else if (DIVIDE_AND_CONQUER.equals(synthesizerType)) {
+            return new DivideAndConquerSynthesizer();
+        } else {
+            return new TopDownEnumSynthesizer();
+        }
     }
 }
