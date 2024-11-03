@@ -1,6 +1,5 @@
 package synth.core;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,7 +14,6 @@ import com.microsoft.z3.IntExpr;
 import com.microsoft.z3.Solver;
 
 import synth.cfg.CFG;
-import synth.cfg.Terminal;
 
 import static synth.core.Utils.expand;
 import static synth.core.Utils.isValid;
@@ -38,30 +36,6 @@ public class ConstraintBasedSynthesizer implements ISynthesizer {
         // Initialize the work list with the start symbol from CFG
         Queue<ASTNode> workList = new LinkedList<>();
         workList.add(new ASTNode(cfg.getStartSymbol(), Collections.emptyList()));
-        // ASTNode temp = new ASTNode(
-        //         new Terminal("Ite"), 
-        //         List.of(
-        //             new ASTNode(new Terminal("Lt"), List.of(new ASTNode(new Terminal("x"), Collections.emptyList()), new ASTNode(new Terminal("y"), Collections.emptyList()))), 
-        //             new ASTNode(
-        //                 new Terminal("Ite"), 
-        //                 List.of(
-        //                     new ASTNode(new Terminal("Lt"), List.of(new ASTNode(new Terminal("y"), Collections.emptyList()), new ASTNode(new Terminal("z"), Collections.emptyList()))),
-        //                     new ASTNode(new Terminal("z"), Collections.emptyList()),
-        //                     new ASTNode(new Terminal("y"), Collections.emptyList())
-        //                 )
-        //             ),
-        //             new ASTNode(
-        //                 new Terminal("Ite"), 
-        //                 List.of(
-        //                     new ASTNode(new Terminal("Lt"), List.of(new ASTNode(new Terminal("x"), Collections.emptyList()), new ASTNode(new Terminal("z"), Collections.emptyList()))),
-        //                     new ASTNode(new Terminal("z"), Collections.emptyList()),
-        //                     new ASTNode(new Terminal("x"), Collections.emptyList())
-        //                 )
-        //             )
-        //         )
-        //     );
-        // System.out.println(isSatisfiable(temp, examples));
-        // workList.add(temp);
 
         while (!workList.isEmpty()) {
             ASTNode node = workList.remove();
