@@ -20,27 +20,31 @@ public class DivideAndConquerSynthesizer implements ISynthesizer {
         Enumerator exprEnumerator = new ExpressionEnumerator(cfg);
         Enumerator predEnumerator = new PredicateEnumerator(cfg);
 
-        // Enumerate expressions to cover all examples
+        // Initialize the mapping from expressions to satisfied examples
         Map<ASTNode, Set<Example>> exprToExamples = new HashMap<>();
-        Map<Example, Boolean> coveredExpr = new HashMap<>();
-        // Enumerate predicates to cover all examples
+        Map<Example, Boolean> coveredByExpr = new HashMap<>();
+        // Initialize the mapping from predicates to satisfied examples
         Map<ASTNode, Set<Example>> predToExamples = new HashMap<>();
-        Map<Example, Boolean> coveredPred = new HashMap<>();
-
+        Map<Example, Boolean> coveredByPred = new HashMap<>();
+        // Initialize the covered statuses for each example
         for (Example example : examples) {
-            coveredExpr.put(example, false);
-            coveredPred.put(example, false);
+            coveredByExpr.put(example, false);
+            coveredByPred.put(example, false);
         }
 
-        while (coveredExpr.containsValue(false)) {
-            enumerate(exprEnumerator, exprToExamples, coveredExpr);
+        // Enumerate expressions and predicates until each examples is covered by at least one expression and one predicate
+        while (coveredByExpr.containsValue(false)) {
+            ASTNode node = nextDistinctNode(exprEnumerator, exprToExamples, examples);
+            for (Example example : exprToExamples.get(node)) {
+                coveredByExpr.put(example, true);
+            }
         }
-        while (coveredPred.containsValue(false)) {
-            enumerate(predEnumerator, predToExamples, coveredPred);
+        while (coveredByPred.containsValue(false)) {
+            ASTNode node = nextDistinctNode(predEnumerator, predToExamples, examples);
+            for (Example example : predToExamples.get(node)) {
+                coveredByPred.put(example, true);
+            }
         }
-
-        System.out.println("Expressions: " + exprToExamples);
-        System.out.println("Predicates: " + predToExamples);
 
         Program program = null;
         do {
@@ -48,16 +52,24 @@ public class DivideAndConquerSynthesizer implements ISynthesizer {
             if (node != null) {
                 program = new Program(node);
             } else {
-                enumerate(exprEnumerator, exprToExamples, coveredExpr);
-                enumerate(predEnumerator, predToExamples, coveredPred);
+                nextDistinctNode(exprEnumerator, exprToExamples, examples);
+                nextDistinctNode(predEnumerator, predToExamples, examples);
             }
         } while (program == null);
 
-        System.out.println("Sanity check: " + isValid(program, examples));
+        assert isValid(program, examples) : "Unexpected validation failure for the synthesized program: " + program;
         return program;
     }
 
-    private ASTNode enumerate(Enumerator enumerator, Map<ASTNode, Set<Example>> nodeToExamples, Map<Example, Boolean> covered) {
+    /**
+     * Enumerate the next distinct node for the given enumerator
+     * 
+     * @param enumerator
+     * @param nodeToExamples
+     * @param examples
+     * @return the next distinct node or throw an exception if no node can be enumerated
+     */
+    private ASTNode nextDistinctNode(Enumerator enumerator, Map<ASTNode, Set<Example>> nodeToExamples, List<Example> examples) {
         boolean enumerated = false;
         ASTNode node = null;
 
@@ -66,13 +78,10 @@ public class DivideAndConquerSynthesizer implements ISynthesizer {
             if (node == null) {
                 throw new RuntimeException("Cannot enumerate any node");
             }
-
-            System.out.println("Enumerated: " + node);
     
-            // Check if the node is valid for any example
+            // Check if the node can satisfy any example
             Set<Example> satisfiedExamples = new HashSet<>();
-            for (Example example : covered.keySet()) {
-                // check instanceOf enumerator
+            for (Example example : examples) {
                 if (enumerator instanceof ExpressionEnumerator) {
                     if (isValid(new Program(node), List.of(example))) {
                         satisfiedExamples.add(example);
@@ -86,12 +95,8 @@ public class DivideAndConquerSynthesizer implements ISynthesizer {
                 }
             }
 
-            System.out.println("Satisfied examples: " + satisfiedExamples);
             if (!satisfiedExamples.isEmpty() && !nodeToExamples.values().contains(satisfiedExamples)) {
                 nodeToExamples.put(node, satisfiedExamples);
-                for (Example example : satisfiedExamples) {
-                    covered.put(example, true);
-                }
                 enumerated = true;
             }
         }
@@ -99,8 +104,16 @@ public class DivideAndConquerSynthesizer implements ISynthesizer {
         return node;
     }
 
+    /**
+     * Unify the expressions and predicates to an AST node that can satisfy the given examples
+     * 
+     * @param exprToExamples
+     * @param predToExamples
+     * @param examples
+     * @return the unified AST node if exists, otherwise null
+     */
     private ASTNode unify(Map<ASTNode, Set<Example>> exprToExamples, Map<ASTNode, Set<Example>> predToExamples, Set<Example> examples) {
-        System.out.println("Unifying expressions and predicates for examples: " + examples);
+        // Iterate over all expressions and unify them with predicates if possible
         for (Map.Entry<ASTNode, Set<Example>> expEntry : exprToExamples.entrySet()) {
             ASTNode expr = expEntry.getKey();
             Set<Example> satisfiedExamples = expEntry.getValue();
@@ -110,26 +123,27 @@ public class DivideAndConquerSynthesizer implements ISynthesizer {
                     unsatisfiedExamples.add(example);
                 }
             }
+
+            // Skip the expression if it cannot satisfy any example
             if (unsatisfiedExamples.equals(examples)) {
                 continue;
             }
 
+            // Return the expression if it satisfies all examples as no predicate is needed
+            if (unsatisfiedExamples.isEmpty()) {
+                return expr;
+            }
+
+            // Check if the expression can be unified with a predicate
             for (Map.Entry<ASTNode, Set<Example>> predEntry : predToExamples.entrySet()) {
+                // The unified predicate should satisfy the same set of examples as the expression
                 if (predEntry.getValue().equals(satisfiedExamples)) {
-                    if (unsatisfiedExamples.isEmpty()) {
-                        return expr;
+                    ASTNode child = unify(exprToExamples, predToExamples, unsatisfiedExamples);
+                    if (child != null) {
+                        ASTNode pred = predEntry.getKey();
+                        return new ASTNode(new Terminal("Ite"), List.of(pred, expr, child));
                     } else {
-                        System.out.println("Expression: " + expr);
-                        System.out.println("Predicate: " + predEntry.getKey());
-                        System.out.println("Satisfied examples: " + satisfiedExamples);
-                        System.out.println("Uncovered examples: " + unsatisfiedExamples);
-                        ASTNode child = unify(exprToExamples, predToExamples, unsatisfiedExamples);
-                        if (child != null) {
-                            ASTNode pred = predEntry.getKey();
-                            return new ASTNode(new Terminal("Ite"), List.of(pred, expr, child));
-                        } else {
-                            break;
-                        }
+                        break;
                     }
                 }
             }
