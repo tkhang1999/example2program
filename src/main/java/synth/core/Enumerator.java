@@ -21,6 +21,11 @@ public abstract class Enumerator {
         return workList;
     }
 
+    /**
+     * Enumerate the next AST node that is complete
+     * 
+     * @return a complete AST node
+     */
     public ASTNode enumerate() {
         while (!workList.isEmpty()) {
             ASTNode node = workList.remove();

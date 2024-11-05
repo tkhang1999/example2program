@@ -47,8 +47,9 @@ public class DivideAndConquerSynthesizer implements ISynthesizer {
         }
 
         Program program = null;
+        Set<Example> examplesSet = new HashSet<>(examples);
         do {
-            ASTNode node = unify(exprToExamples, predToExamples, new HashSet<>(examples));
+            ASTNode node = unify(exprToExamples, predToExamples, examplesSet);
             if (node != null) {
                 program = new Program(node);
             } else {
@@ -95,6 +96,7 @@ public class DivideAndConquerSynthesizer implements ISynthesizer {
                 }
             }
 
+            // The satisfied examples should be distinct from the examples satisfied by other nodes
             if (!satisfiedExamples.isEmpty() && !nodeToExamples.values().contains(satisfiedExamples)) {
                 nodeToExamples.put(node, satisfiedExamples);
                 enumerated = true;
@@ -134,7 +136,7 @@ public class DivideAndConquerSynthesizer implements ISynthesizer {
                 return expr;
             }
 
-            // Check if the expression can be unified with a predicate
+            // Otherwise, check if the expression can be unified with a predicate
             for (Map.Entry<ASTNode, Set<Example>> predEntry : predToExamples.entrySet()) {
                 // The unified predicate should satisfy the same set of examples as the expression
                 if (predEntry.getValue().equals(satisfiedExamples)) {
