@@ -1,11 +1,13 @@
 package synth.core;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.logging.Logger;
 
 import com.microsoft.z3.ArithExpr;
 import com.microsoft.z3.BoolExpr;
@@ -20,6 +22,7 @@ import static synth.core.Utils.expand;
 import static synth.core.Utils.isValid;
 
 public class ConstraintBasedSynthesizer implements ISynthesizer {
+    private static final Logger LOGGER = Utils.getLogger(ConstraintBasedSynthesizer.class.getName());
     // Counter for the non-terminal symbol E and B
     private int eCount = 0;
     private int bCount = 0;
@@ -90,7 +93,7 @@ public class ConstraintBasedSynthesizer implements ISynthesizer {
             solver.add(ctx.mkEq(expr, ctx.mkInt(example.getOutput())));
 
             if (solver.check() == com.microsoft.z3.Status.UNSATISFIABLE) {
-                // System.out.println(Arrays.toString(solver.getAssertions()) + " is unsatisfiable");
+                LOGGER.info(Arrays.toString(solver.getAssertions()) + " is unsatisfiable");
                 solver.pop();
                 return false;
             } else {

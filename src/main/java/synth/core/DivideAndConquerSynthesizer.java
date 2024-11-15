@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import synth.cfg.CFG;
 import synth.cfg.Terminal;
@@ -13,6 +14,7 @@ import static synth.core.Utils.isValid;
 import static synth.core.Utils.isSatisfiable;
 
 public class DivideAndConquerSynthesizer implements ISynthesizer {
+    private static final Logger LOGGER = Utils.getLogger(DivideAndConquerSynthesizer.class.getName());
 
     @Override
     public Program synthesize(CFG cfg, List<Example> examples) {
@@ -49,14 +51,15 @@ public class DivideAndConquerSynthesizer implements ISynthesizer {
         Program program = null;
         Set<Example> examplesSet = new HashSet<>(examples);
         do {
-            // System.out.println("Set of expressions: " + exprToExamples.keySet());
-            // System.out.println("Set of predicates: " + predToExamples.keySet());
+            LOGGER.info("Set of expressions: " + exprToExamples.keySet());
+            LOGGER.info("Set of predicates: " + predToExamples.keySet());
             ASTNode node = unify(exprToExamples, predToExamples, examplesSet);
             if (node != null) {
                 program = new Program(node);
             } else {
-                nextDistinctNode(exprEnumerator, exprToExamples, examples);
-                nextDistinctNode(predEnumerator, predToExamples, examples);
+                ASTNode expr = nextDistinctNode(exprEnumerator, exprToExamples, examples);
+                ASTNode pred = nextDistinctNode(predEnumerator, predToExamples, examples);
+                LOGGER.info("Unification failed. Generating an additional expression and predicate: " + expr + " & " + pred);
             }
         } while (program == null);
 

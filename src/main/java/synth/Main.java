@@ -10,6 +10,7 @@ import synth.core.ISynthesizer;
 import synth.cfg.Production;
 import synth.core.Program;
 import synth.core.TopDownEnumSynthesizer;
+import synth.core.Utils;
 import synth.util.FileUtils;
 import synth.util.Parser;
 
@@ -18,10 +19,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class Main {
     private static final String CONSTRAINT_BASED = "constraint-based";
     private static final String DIVIDE_AND_CONQUER = "divide-conquer";
+    private static final Logger LOGGER = Utils.getLogger(Main.class.getName());
 
     public static void main(String[] args) {
         String examplesFilePath = args[0];
@@ -37,8 +40,8 @@ public class Main {
         Program program = synthesizer.synthesize(cfg, examples);
         long endTime = System.currentTimeMillis();
 
+        LOGGER.info("Time taken: " + (endTime - startTime) + "ms");
         System.out.println(program);
-        System.out.println("Time taken: " + (endTime - startTime) + "ms");
     }
 
     /**

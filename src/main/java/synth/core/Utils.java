@@ -2,7 +2,14 @@ package synth.core;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Formatter;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import java.util.stream.Collectors;
 
 import synth.cfg.CFG;
@@ -13,6 +20,21 @@ import synth.cfg.Production;
  * Utility functions for the synthesizer
  */
 public class Utils {
+    private static final ConsoleHandler CONSOLE_HANDLER = new ConsoleHandler() {{
+        Formatter formatter = new SimpleFormatter() {
+            String format = "[%1$tF %1$tT.%1$tL] [%2$s] [%3$s.%4$s] %5$s %n";
+    
+            @Override
+            public synchronized String format(LogRecord lr) {
+                return String.format(format, new Date(lr.getMillis()), lr.getLevel().getLocalizedName(),
+                        lr.getSourceClassName(), lr.getSourceMethodName(), lr.getMessage());
+            }
+        };
+        setFormatter(formatter);
+
+        String logLevel = System.getenv("LOG_LEVEL");
+        setLevel(Level.parse(logLevel != null && !logLevel.isEmpty() ? logLevel.toUpperCase() : "WARNING"));
+    }};
 
     /**
      * Check if a program satisfies all the examples
@@ -91,5 +113,20 @@ public class Utils {
         }
 
         return expandedNodes;
+    }
+
+    /**
+     * Get a logger for the given class
+     * 
+     * @param clazz
+     * @return the logger
+     */
+    public static Logger getLogger(String className) {
+        Logger logger = Logger.getLogger(className);
+        logger.setLevel(Level.ALL);
+        logger.setUseParentHandlers(false);
+        logger.addHandler(CONSOLE_HANDLER);
+
+        return logger;
     }
 }
