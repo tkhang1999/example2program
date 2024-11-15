@@ -1,6 +1,7 @@
 package synth.core;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -20,8 +21,8 @@ import static synth.core.Utils.isValid;
 
 public class ConstraintBasedSynthesizer implements ISynthesizer {
     // Counter for the non-terminal symbol E and B
-    private static int eCount = 0;
-    private static int bCount = 0;
+    private int eCount = 0;
+    private int bCount = 0;
     
     /**
      * Synthesize a program f(x, y, z) based on a context-free grammar and examples 
@@ -37,24 +38,37 @@ public class ConstraintBasedSynthesizer implements ISynthesizer {
         Queue<ASTNode> workList = new LinkedList<>();
         workList.add(new ASTNode(cfg.getStartSymbol(), Collections.emptyList()));
 
+        // Initialize the mapping from examples to Z3 solvers
+        Map<Example, Solver> exampleToSolver = new HashMap<>();
+        Context ctx = new Context();
+        for (Example example : examples) {
+            Solver solver = ctx.mkSolver();
+            for (Map.Entry<String, Integer> entry : example.getInput().entrySet()) {
+                solver.add(ctx.mkEq(ctx.mkIntConst(entry.getKey()), ctx.mkInt(entry.getValue())));
+            }
+            exampleToSolver.put(example, solver);
+        }
+
+        Program program = null;
         while (!workList.isEmpty()) {
             ASTNode node = workList.remove();
 
             // If the node is complete, evaluate the program and check if it satisfies all examples
             if (node.isComplete()) {
-                Program program = new Program(node);
+                program = new Program(node);
 
                 if (isValid(program, examples)) {
-                    return program;
+                    break;
                 }
             }
             // Otherwise, expand the node if its abstract syntax tree is satisfiable for all examples
-            else if (isSatisfiable(node, examples)) {
+            else if (isSatisfiable(node, ctx, exampleToSolver)) {
                 workList.addAll(expand(node, cfg));
             }
         }
 
-        return null;    
+        ctx.close();
+        return program;    
     }
 
     /**
@@ -64,32 +78,26 @@ public class ConstraintBasedSynthesizer implements ISynthesizer {
      * @param examples
      * @return true if the node is satisfiable for all examples, false otherwise
      */
-    private boolean isSatisfiable(ASTNode node, List<Example> examples) {
-        // Initialize the Z3 context and solver
-        Context ctx = new Context();
-        Solver solver = ctx.mkSolver();
-        // Reset the counter for the non-terminal symbol E and B
-        eCount = 0;
-        bCount = 0;
-
+    private boolean isSatisfiable(ASTNode node, Context ctx, Map<Example, Solver> exampleToSolver) {
         // Use the Z3 SMT solver to check if the node is satisfiable
         Expr expr = toZ3Expr(node, ctx);
-        for (Example example : examples) {
-            for (Map.Entry<String, Integer> entry : example.getInput().entrySet()) {
-                solver.add(ctx.mkEq(ctx.mkIntConst(entry.getKey()), ctx.mkInt(entry.getValue())));
-            }
+        for (Map.Entry<Example, Solver> entry : exampleToSolver.entrySet()) {
+            Example example = entry.getKey();
+            Solver solver = entry.getValue();
+
+            // Using incremental solving to check if the node is satisfiable for the example
+            solver.push();
             solver.add(ctx.mkEq(expr, ctx.mkInt(example.getOutput())));
 
             if (solver.check() == com.microsoft.z3.Status.UNSATISFIABLE) {
                 // System.out.println(Arrays.toString(solver.getAssertions()) + " is unsatisfiable");
-                ctx.close();
+                solver.pop();
                 return false;
             } else {
-                solver.reset();
+                solver.pop();
             }
         }
 
-        ctx.close();
         return true;
     }
 

@@ -49,6 +49,8 @@ public class DivideAndConquerSynthesizer implements ISynthesizer {
         Program program = null;
         Set<Example> examplesSet = new HashSet<>(examples);
         do {
+            // System.out.println("Set of expressions: " + exprToExamples.keySet());
+            // System.out.println("Set of predicates: " + predToExamples.keySet());
             ASTNode node = unify(exprToExamples, predToExamples, examplesSet);
             if (node != null) {
                 program = new Program(node);
