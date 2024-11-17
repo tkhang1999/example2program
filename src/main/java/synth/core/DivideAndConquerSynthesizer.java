@@ -14,7 +14,7 @@ import static synth.core.Utils.isValid;
 import static synth.core.Utils.isSatisfiable;
 
 public class DivideAndConquerSynthesizer implements ISynthesizer {
-    private static final Logger LOGGER = Utils.getLogger(DivideAndConquerSynthesizer.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(DivideAndConquerSynthesizer.class.getName());
 
     @Override
     public Program synthesize(CFG cfg, List<Example> examples) {

@@ -1,6 +1,5 @@
 package synth.core;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -22,7 +21,8 @@ import static synth.core.Utils.expand;
 import static synth.core.Utils.isValid;
 
 public class ConstraintBasedSynthesizer implements ISynthesizer {
-    private static final Logger LOGGER = Utils.getLogger(ConstraintBasedSynthesizer.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ConstraintBasedSynthesizer.class.getName());
+
     // Counter for the non-terminal symbol E and B
     private int eCount = 0;
     private int bCount = 0;
@@ -93,7 +93,8 @@ public class ConstraintBasedSynthesizer implements ISynthesizer {
             solver.add(ctx.mkEq(expr, ctx.mkInt(example.getOutput())));
 
             if (solver.check() == com.microsoft.z3.Status.UNSATISFIABLE) {
-                LOGGER.info(Arrays.toString(solver.getAssertions()) + " is unsatisfiable");
+                LOGGER.info("Pruning the node [" + node 
+                    + "] as it is unsatisfiable for the example [" + example + "]");
                 solver.pop();
                 return false;
             } else {

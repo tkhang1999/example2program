@@ -10,7 +10,6 @@ import synth.core.ISynthesizer;
 import synth.cfg.Production;
 import synth.core.Program;
 import synth.core.TopDownEnumSynthesizer;
-import synth.core.Utils;
 import synth.util.FileUtils;
 import synth.util.Parser;
 
@@ -22,9 +21,16 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 public class Main {
+    static {
+        // must set before the Logger
+        if (System.getProperty("java.util.logging.config.file") == null) {
+            System.setProperty("java.util.logging.config.file", "logging.properties");
+        }
+    }
+
+    private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
     private static final String CONSTRAINT_BASED = "constraint-based";
     private static final String DIVIDE_AND_CONQUER = "divide-conquer";
-    private static final Logger LOGGER = Utils.getLogger(Main.class.getName());
 
     public static void main(String[] args) {
         String examplesFilePath = args[0];

@@ -6,11 +6,13 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.logging.Logger;
 
 import static synth.core.Utils.expand;
 import static synth.core.Utils.isValid;
 
 public class TopDownEnumSynthesizer implements ISynthesizer {
+    private static final Logger LOGGER = Logger.getLogger(TopDownEnumSynthesizer.class.getName());
 
     /**
      * Synthesize a program f(x, y, z) based on a context-free grammar and examples
@@ -32,6 +34,7 @@ public class TopDownEnumSynthesizer implements ISynthesizer {
             if (node.isComplete()) {
                 Program program = new Program(node);
 
+                LOGGER.info("Evaluating program: " + program);
                 if (isValid(program, examples)) {
                     return program;
                 }
