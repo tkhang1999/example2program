@@ -1,7 +1,15 @@
 #!/bin/bash
 
-BENCHMARK_FOLDER="./benchmarks"
+echo -e "\n------ EVALUATION ------\n"
 
+MVN_OUTPUT=$(mvn clean package 2>&1)
+if [ $? -ne 0 ]; then
+    echo "$MVN_OUTPUT"
+    echo "Compilation failed."
+    exit 1  # Exit the script with an error code
+fi
+
+BENCHMARK_FOLDER="./benchmarks"
 for file in "$BENCHMARK_FOLDER"/*.txt; do
     if [[ -f "$file" ]]; then
         echo "---------------------------------"
