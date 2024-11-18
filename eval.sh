@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo -e "\n------ EVALUATION ------\n"
+echo -e "\n------ RUNNING EVALUATION ------\n"
 
 MVN_OUTPUT=$(mvn clean package 2>&1)
 if [ $? -ne 0 ]; then
@@ -16,14 +16,14 @@ for file in "$BENCHMARK_FOLDER"/*.txt; do
         echo "Examples in $file:"
         echo "$(<$file)"
 
-        echo -e "\nSyntheszing a program using the top-down enumerative search approach..."
+        echo -e "\nSynthesizing a program using the top-down enumerative search approach..."
         java -cp lib:target/synth-1.0.jar synth.Main $file
 
-        echo -e "\nSyntheszing a program using the constraint-based enumeration approach..."
+        echo -e "\nSynthesizing a program using the constraint-based enumeration approach..."
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./lib
         java -cp lib/*:target/synth-1.0.jar synth.Main $file constraint-based
 
-        echo -e "\nSyntheszing a program using the divide-and-conquer enumeration approach..."
+        echo -e "\nSynthesizing a program using the divide-and-conquer enumeration approach..."
         java -cp lib:target/synth-1.0.jar synth.Main $file divide-conquer
         echo "---------------------------------"
     fi
