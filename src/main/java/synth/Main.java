@@ -8,16 +8,21 @@ import synth.core.DivideAndConquerSynthesizer;
 import synth.core.Example;
 import synth.core.ISynthesizer;
 import synth.cfg.Production;
-import synth.core.Program;
 import synth.core.TopDownEnumSynthesizer;
 import synth.util.FileUtils;
 import synth.util.Parser;
+import synth.util.SynthesisTask;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 public class Main {
@@ -32,7 +37,7 @@ public class Main {
     private static final String CONSTRAINT_BASED = "constraint-based";
     private static final String DIVIDE_AND_CONQUER = "divide-conquer";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         String examplesFilePath = args[0];
         List<String> lines = FileUtils.readLinesFromFile(examplesFilePath);
         // parse all examples
@@ -42,12 +47,21 @@ public class Main {
         // read the synthesizer
         ISynthesizer synthesizer = buildSynthesizer(args.length > 1 ? args[1] : null);
 
-        long startTime = System.currentTimeMillis();
-        Program program = synthesizer.synthesize(cfg, examples);
-        long endTime = System.currentTimeMillis();
-
-        LOGGER.info("Time taken: " + (endTime - startTime) + "ms");
-        System.out.println(program);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<?> future = executor.submit(new SynthesisTask(synthesizer, cfg, examples));
+        try {
+            future.get(10, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            future.cancel(true);
+            LOGGER.info("Unable to synthesize a program within the time limit");
+        } catch (Exception e) {
+            LOGGER.severe("An error occurred during synthesis: " + e.getMessage());
+        } finally {
+            executor.shutdownNow();
+            if (!executor.awaitTermination(100, TimeUnit.MICROSECONDS)) {
+                System.exit(0);
+            }
+        }
     }
 
     /**
