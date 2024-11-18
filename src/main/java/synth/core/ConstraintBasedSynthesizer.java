@@ -93,7 +93,7 @@ public class ConstraintBasedSynthesizer implements ISynthesizer {
             solver.add(ctx.mkEq(expr, ctx.mkInt(example.getOutput())));
 
             if (solver.check() == com.microsoft.z3.Status.UNSATISFIABLE) {
-                LOGGER.info("Pruning the node [" + node 
+                LOGGER.fine("Pruning the node [" + node 
                     + "] as it is unsatisfiable for the example [" + example + "]");
                 solver.pop();
                 return false;

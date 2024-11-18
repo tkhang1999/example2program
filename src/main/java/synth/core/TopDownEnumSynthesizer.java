@@ -34,7 +34,7 @@ public class TopDownEnumSynthesizer implements ISynthesizer {
             if (node.isComplete()) {
                 Program program = new Program(node);
 
-                LOGGER.info("Evaluating program: " + program);
+                LOGGER.fine("Evaluating program: " + program);
                 if (isValid(program, examples)) {
                     return program;
                 }

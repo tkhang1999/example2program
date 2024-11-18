@@ -39,27 +39,29 @@ public class DivideAndConquerSynthesizer implements ISynthesizer {
             ASTNode node = nextDistinctNode(exprEnumerator, exprToExamples, examples);
             for (Example example : exprToExamples.get(node)) {
                 coveredByExpr.put(example, true);
+                LOGGER.fine("Expression " + node + " covers example: " + example);
             }
         }
         while (coveredByPred.containsValue(false)) {
             ASTNode node = nextDistinctNode(predEnumerator, predToExamples, examples);
             for (Example example : predToExamples.get(node)) {
                 coveredByPred.put(example, true);
+                LOGGER.fine("Predicate " + node + " covers example: " + example);
             }
         }
 
         Program program = null;
         Set<Example> examplesSet = new HashSet<>(examples);
         do {
-            LOGGER.info("Set of expressions: " + exprToExamples.keySet());
-            LOGGER.info("Set of predicates: " + predToExamples.keySet());
+            LOGGER.fine("Set of expressions: " + exprToExamples.keySet());
+            LOGGER.fine("Set of predicates: " + predToExamples.keySet());
             ASTNode node = unify(exprToExamples, predToExamples, examplesSet);
             if (node != null) {
                 program = new Program(node);
             } else {
                 ASTNode expr = nextDistinctNode(exprEnumerator, exprToExamples, examples);
                 ASTNode pred = nextDistinctNode(predEnumerator, predToExamples, examples);
-                LOGGER.info("Unification failed. Generating an additional expression and predicate: " + expr + " & " + pred);
+                LOGGER.fine("Unification failed. Generating an additional expression and predicate: " + expr + " & " + pred);
             }
         } while (program == null);
 
