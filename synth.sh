@@ -7,5 +7,5 @@ if [ $? -ne 0 ]; then
     exit 1  # Exit the script with an error code
 fi
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./lib
+export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:./lib
 java -cp lib/*:target/synth-1.0.jar synth.Main examples.txt $1

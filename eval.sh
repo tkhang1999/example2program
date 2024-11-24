@@ -9,7 +9,7 @@ if [ $? -ne 0 ]; then
     exit 1  # Exit the script with an error code
 fi
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./lib
+export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:./lib
 
 BENCHMARK_FOLDER="./benchmarks"
 for file in "$BENCHMARK_FOLDER"/*.txt; do
