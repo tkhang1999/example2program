@@ -7,5 +7,14 @@ if [ $? -ne 0 ]; then
     exit 1  # Exit the script with an error code
 fi
 
-export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:./lib
+# Set library path for Linux or MacOS
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./lib
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:./lib
+else [[ $1 == "constraint-based" ]]
+    echo "Unsupported OS: $OSTYPE"
+    exit 1
+fi
+
 java -cp lib/*:target/synth-1.0.jar synth.Main examples.txt $1
