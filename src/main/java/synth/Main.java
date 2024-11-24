@@ -110,10 +110,13 @@ public class Main {
      */
     private static ISynthesizer buildSynthesizer(String synthesizerType) {
         if (CONSTRAINT_BASED.equals(synthesizerType)) {
+            LOGGER.info("Using the constraint-based synthesizer");
             return new ConstraintBasedSynthesizer();
         } else if (DIVIDE_AND_CONQUER.equals(synthesizerType)) {
+            LOGGER.info("Using the divide-and-conquer synthesizer");
             return new DivideAndConquerSynthesizer();
         } else {
+            LOGGER.info("Using the top-down enumeration synthesizer");
             return new TopDownEnumSynthesizer();
         }
     }

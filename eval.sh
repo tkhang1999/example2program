@@ -9,6 +9,8 @@ if [ $? -ne 0 ]; then
     exit 1  # Exit the script with an error code
 fi
 
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./lib
+
 BENCHMARK_FOLDER="./benchmarks"
 for file in "$BENCHMARK_FOLDER"/*.txt; do
     if [[ -f "$file" ]]; then
@@ -20,7 +22,6 @@ for file in "$BENCHMARK_FOLDER"/*.txt; do
         java -cp lib:target/synth-1.0.jar synth.Main $file
 
         echo -e "\nSynthesizing a program using the constraint-based enumeration approach..."
-        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./lib
         java -cp lib/*:target/synth-1.0.jar synth.Main $file constraint-based
 
         echo -e "\nSynthesizing a program using the divide-and-conquer enumeration approach..."
