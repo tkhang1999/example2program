@@ -8,13 +8,15 @@ if [ $? -ne 0 ]; then
 fi
 
 # Set library path for Linux or MacOS
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./lib
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-    export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:./lib
-else [[ $1 == "constraint-based" ]]
-    echo "Unsupported OS: $OSTYPE"
-    exit 1
+if [[ $1 == "constraint-based" ]]; then
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./lib
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:./lib
+    else
+        echo "Unsupported OS: $OSTYPE"
+        exit 1
+    fi
 fi
 
 java -cp lib/*:target/synth-1.0.jar synth.Main examples.txt $1
