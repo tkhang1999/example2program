@@ -52,3 +52,13 @@ $ java -cp lib/*:target/synth-1.0.jar synth.Main examples.txt constraint-based
 ```sh
 $ java -cp lib:target/synth-1.0.jar synth.Main examples.txt divide-conquer
 ```
+
+## Evaluation
+
+To evaluate the performace of the synthesizers, 15 benchmarks are used with various degrees of complexity.
+The details of each benchmark can be found under the `benchmarks` folder.
+
+To run end-to-end evaluation of three synthesizers on all 15 benchmarks, use the following command:
+```sh
+$ ./eval.sh
+```
